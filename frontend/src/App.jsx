@@ -6,6 +6,7 @@ import Availability from './screens/Availability.jsx'
 import Questions from './screens/Questions.jsx'
 import Matching from './screens/Matching.jsx'
 import Home from './screens/Home.jsx'
+import About from './screens/About.jsx'
 import { generateTables, seedOpenEvents, simulateJoin } from './engine.js'
 import { THRESHOLD } from './data.js'
 import { captureRedirectToken, fetchMe } from './api.js'
@@ -43,7 +44,11 @@ function loadSaved() {
 export default function App() {
   const saved = useRef(loadSaved()).current
 
-  const [screen, setScreen] = useState(saved ? 'home' : 'welcome')
+  const [screen, setScreen] = useState(() =>
+    window.location.pathname === '/about' ? 'about' : saved ? 'home' : 'welcome',
+  )
+  // where "← Back" from the About page should land
+  const beforeAbout = useRef(saved ? 'home' : 'welcome')
   const [user, setUser] = useState(
     saved?.user ?? { name: '', neighborhood: '', interests: [], availability: [] },
   )
@@ -104,6 +109,27 @@ export default function App() {
     setToasts([])
     setScreen('welcome')
   }
+
+  // ---------- about page (the only screen with its own URL) ----------
+  const openAbout = () => {
+    beforeAbout.current = screen
+    window.history.pushState({}, '', '/about')
+    setScreen('about')
+  }
+  const closeAbout = () => {
+    window.history.pushState({}, '', '/')
+    setScreen(beforeAbout.current)
+  }
+  useEffect(() => {
+    const onPop = () => {
+      setScreen((cur) => {
+        if (window.location.pathname === '/about') return 'about'
+        return cur === 'about' ? beforeAbout.current : cur
+      })
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   // ---------- onboarding transitions ----------
   const finishWelcome = () => setScreen('profile')
@@ -175,8 +201,9 @@ export default function App() {
     <div className="app">
       <div className="grain" aria-hidden="true" />
       {screen === 'welcome' && (
-        <Welcome onNext={finishWelcome} onAuthed={handleAuthed} authedEmail={auth?.email} />
+        <Welcome onNext={finishWelcome} onAuthed={handleAuthed} authedEmail={auth?.email} onAbout={openAbout} />
       )}
+      {screen === 'about' && <About onBack={closeAbout} />}
       {screen === 'profile' && <Profile onNext={finishProfile} />}
       {screen === 'interests' && <Interests onNext={finishInterests} />}
       {screen === 'availability' && <Availability onNext={finishAvailability} />}
@@ -190,6 +217,7 @@ export default function App() {
           onReset={resetDemo}
           auth={auth?.email ? auth : null}
           onAuthed={handleAuthed}
+          onAbout={openAbout}
         />
       )}
 

@@ -37,7 +37,7 @@ const HOW = [
  * an email (magic link, no password). Both land in the same onboarding,
  * which starts with the Profile step.
  */
-export default function Welcome({ onNext, onAuthed, authedEmail }) {
+export default function Welcome({ onNext, onAuthed, authedEmail, onAbout }) {
   const [phase, setPhase] = useState('landing') // landing | email | sending | sent
   const [email, setEmail] = useState('')
   const [cfg, setCfg] = useState(undefined) // undefined = loading, null = backend unreachable
@@ -186,6 +186,9 @@ export default function Welcome({ onNext, onAuthed, authedEmail }) {
         <span className="mono">02 — WHAT</span>
         <span className="mono">03 — WHEN</span>
         <span className="mono">04 — YOU</span>
+        <button type="button" className="mono welcome-foot__link" onClick={onAbout}>
+          ABOUT ↗
+        </button>
       </footer>
     </main>
   )

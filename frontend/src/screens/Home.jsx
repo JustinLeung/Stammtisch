@@ -81,7 +81,7 @@ function AccountBanner({ onAuthed }) {
   )
 }
 
-export default function Home({ user, events, onToggleJoin, onReset, auth, onAuthed }) {
+export default function Home({ user, events, onToggleJoin, onReset, auth, onAuthed, onAbout }) {
   const mine = events.filter((e) => e.mine)
   const open = events.filter((e) => !e.mine && isOpen(e))
   const [profileName, setProfileName] = useState(null)
@@ -174,7 +174,10 @@ export default function Home({ user, events, onToggleJoin, onReset, auth, onAuth
       </section>
 
       <footer className="home-foot mono">
-        STAMMTISCH · prototype · München first 🥨
+        STAMMTISCH · prototype · München first 🥨 ·{' '}
+        <button type="button" className="home-foot__link" onClick={onAbout}>
+          About
+        </button>
       </footer>
 
       <ProfileModal person={profile} onClose={() => setProfileName(null)} />
