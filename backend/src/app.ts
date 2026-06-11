@@ -42,12 +42,14 @@ export function createApp(db: Db, opts: AppOptions = {}): express.Express {
   app.use('/auth', authRouter(db, provider))
 
   if (opts.staticDir) {
-    const indexHtml = path.join(opts.staticDir, 'index.html')
-    app.use(express.static(opts.staticDir))
-    // SPA fallback: any unmatched GET that wants HTML gets the app shell
+    const staticDir = path.resolve(opts.staticDir)
+    app.use(express.static(staticDir))
+    // SPA fallback: any unmatched GET that wants HTML gets the app shell.
+    // Express 5 rejects bare absolute paths in sendFile — must use {root}.
     app.use((req, res, next) => {
-      if (req.method === 'GET' && req.accepts('html')) res.sendFile(indexHtml)
-      else next()
+      if (req.method === 'GET' && req.accepts('html')) {
+        res.sendFile('index.html', { root: staticDir }, (err) => err && next(err))
+      } else next()
     })
   }
 
