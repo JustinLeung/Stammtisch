@@ -1,17 +1,17 @@
-# Render blueprint: FastAPI backend (web service) + Vite frontend (static).
+# Render blueprint: Express backend (web service) + Vite frontend (static).
 # Set the Supabase env vars in the Render dashboard (sync: false below keeps
 # secrets out of the repo). Note: SQLite on Render's free disk is ephemeral —
 # attach a Render Postgres and set DATABASE_URL for persistent data.
 services:
   - type: web
     name: stammtisch-api
-    runtime: python
+    runtime: node
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: python -m app.seeds.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: npm ci && npm run build
+    startCommand: npm run seed && npm run start
     envVars:
-      - key: PYTHON_VERSION
-        value: "3.12"
+      - key: NODE_VERSION
+        value: "22"
       - key: FRONTEND_ORIGIN
         fromService:
           type: web

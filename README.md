@@ -8,7 +8,7 @@ decision, validates) while humans hold the taste decisions. München first.
 ## Layout
 
 ```
-backend/   FastAPI + SQLAlchemy (SQLite default, Postgres via DATABASE_URL)
+backend/   Express + TypeScript, raw SQL (SQLite default, Postgres via DATABASE_URL)
 frontend/  Vite/React app (the original demo prototype, being rewired to the API)
 evals/     offline eval harness (venue validity, constraints, decision metrics)
 docs/      BUILD_PLAN.md — build order, status, decisions
@@ -19,12 +19,12 @@ docs/      BUILD_PLAN.md — build order, status, decisions
 ```bash
 # backend
 cd backend
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m app.seeds.seed          # seed ~50 venues + 20 users
-.venv/bin/uvicorn app.main:app --reload     # http://localhost:8000/docs
+npm install
+npm run seed:dev    # seed ~50 venues + 20 users
+npm run dev         # http://localhost:8000
 
 # tests
-.venv/bin/python -m pytest tests/ -q
+npm test
 
 # frontend (standalone demo for now; API wiring is build step 9)
 cd frontend && npm install && npm run dev   # http://localhost:5173
@@ -37,7 +37,7 @@ notifications log to console.
 
 ## Auth (real accounts)
 
-Behind an `AuthProvider` seam (`backend/app/providers/auth.py`):
+Behind an `AuthProvider` seam (`backend/src/providers/auth.ts`):
 
 - **Stub mode (default, zero config):** any email logs in instantly; the
   "magic link" returns a token immediately. Great for demos and tests.
@@ -56,7 +56,7 @@ Also add the frontend URL to Supabase → Authentication → URL Configuration
 
 ## Deploy (Render)
 
-`render.yaml` defines two services: `stammtisch-api` (FastAPI) and
+`render.yaml` defines two services: `stammtisch-api` (Express) and
 `stammtisch-web` (static Vite build), wired to each other's URLs. Create a
 Blueprint in Render pointing at this repo, then set `SUPABASE_URL` and
 `SUPABASE_PUBLISHABLE_KEY` in the API service's environment. For persistent
