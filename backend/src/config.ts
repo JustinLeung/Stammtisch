@@ -15,7 +15,12 @@ export const SUPABASE_URL = (process.env.SUPABASE_URL ?? '').trim()
 export const SUPABASE_KEY =
   (process.env.SUPABASE_PUBLISHABLE_KEY ?? '').trim() ||
   (process.env.SUPABASE_ANON_KEY ?? '').trim()
-export const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173'
+// Where magic-link / OAuth redirects land. On a single-service deploy the
+// frontend is served by this app, so Render's own URL is the right default.
+export const FRONTEND_ORIGIN =
+  process.env.FRONTEND_ORIGIN ??
+  process.env.RENDER_EXTERNAL_URL ??
+  'http://localhost:5173'
 
 export function authMode(): 'supabase' | 'stub' {
   return SUPABASE_URL && SUPABASE_KEY ? 'supabase' : 'stub'

@@ -1,6 +1,9 @@
 // Thin client for the Stammtisch API. Every call degrades gracefully —
 // if the backend is down, the app keeps working as a local-only demo.
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+// Dev: Vite on 5173 talks to the API on 8000. Production: the Express app
+// serves this build itself, so API calls are same-origin ('').
+const API_URL =
+  import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? 'http://localhost:8000' : '')
 
 async function request(path, { method = 'GET', body, token } = {}) {
   const headers = {}
