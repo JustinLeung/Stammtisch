@@ -31,10 +31,16 @@ const HOW = [
   ['03', 'Critical mass opens it', 'Once more than three confirm, the table opens to the whole city.'],
 ]
 
+/**
+ * Landing: one hero, two doors. "Try the demo" walks straight into the
+ * simulated experience with no account; "Create an account" asks only for
+ * an email (magic link, no password). Both land in the same onboarding,
+ * which starts with the Profile step.
+ */
 export default function Welcome({ onNext, onAuthed, authedEmail }) {
+  const [phase, setPhase] = useState('landing') // landing | email | sending | sent
   const [email, setEmail] = useState('')
   const [cfg, setCfg] = useState(undefined) // undefined = loading, null = backend unreachable
-  const [phase, setPhase] = useState('form') // form | sending | sent
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -42,19 +48,21 @@ export default function Welcome({ onNext, onAuthed, authedEmail }) {
   }, [])
 
   const offline = cfg === null
-  const ready = authedEmail || offline || email.trim()
 
-  const submit = async (e) => {
-    e.preventDefault()
-    if (!ready) return
-    setError('')
-
-    // already signed in (back from magic link), or backend down:
-    if (authedEmail || offline) {
+  const chooseAccount = () => {
+    // already signed in (back from a magic link): straight to onboarding
+    if (authedEmail) {
       onNext()
       return
     }
+    setError('')
+    setPhase('email')
+  }
 
+  const submit = async (e) => {
+    e.preventDefault()
+    if (!email.trim()) return
+    setError('')
     setPhase('sending')
     try {
       const res = await sendMagicLink(email.trim())
@@ -69,7 +77,7 @@ export default function Welcome({ onNext, onAuthed, authedEmail }) {
       }
     } catch (err) {
       setError(err.message)
-      setPhase('form')
+      setPhase('email')
     }
   }
 
@@ -93,7 +101,7 @@ export default function Welcome({ onNext, onAuthed, authedEmail }) {
           <button
             className="btn btn--ghost reveal"
             style={{ '--d': '320ms' }}
-            onClick={() => setPhase('form')}
+            onClick={() => setPhase('email')}
           >
             ← Use a different email
           </button>
@@ -132,12 +140,22 @@ export default function Welcome({ onNext, onAuthed, authedEmail }) {
           ))}
         </ol>
 
-        <form className="welcome-form reveal" style={{ '--d': '420ms' }} onSubmit={submit}>
-          {authedEmail ? (
-            <p className="auth-note">✓ Signed in as <strong>{authedEmail}</strong></p>
-          ) : offline ? (
-            <p className="auth-note auth-note--offline">API offline — continuing as local demo</p>
-          ) : (
+        {phase === 'landing' ? (
+          <div className="welcome-cta reveal" style={{ '--d': '420ms' }}>
+            <button className="btn btn--primary" onClick={() => onNext()}>
+              Try the demo →
+            </button>
+            <button className="btn" onClick={chooseAccount} disabled={offline}>
+              {authedEmail ? `Continue as ${authedEmail} →` : 'Create an account'}
+            </button>
+            <p className="welcome-cta__hint mono">
+              {offline
+                ? 'API OFFLINE — ACCOUNTS UNAVAILABLE, THE DEMO STILL WORKS'
+                : 'DEMO: SIMULATED TABLES, NO SIGN-UP · ACCOUNT: MAGIC LINK TO YOUR EMAIL, NO PASSWORD'}
+            </p>
+          </div>
+        ) : (
+          <form className="welcome-form reveal" style={{ '--d': '80ms' }} onSubmit={submit}>
             <label className="field field--wide">
               <span className="field__label">Email</span>
               <input
@@ -149,17 +167,18 @@ export default function Welcome({ onNext, onAuthed, authedEmail }) {
                 placeholder="you@example.com"
               />
             </label>
-          )}
 
-          <div className="auth-actions">
-            <button className="btn btn--primary" type="submit" disabled={!ready || phase === 'sending'}>
-              {authedEmail || offline
-                ? 'Take a seat →'
-                : phase === 'sending' ? 'Sending…' : 'Email me a magic link →'}
-            </button>
-          </div>
-          {error && <p className="auth-error">{error}</p>}
-        </form>
+            <div className="auth-actions">
+              <button className="btn btn--primary" type="submit" disabled={!email.trim() || phase === 'sending'}>
+                {phase === 'sending' ? 'Sending…' : 'Email me a magic link →'}
+              </button>
+              <button type="button" className="btn btn--ghost" onClick={() => setPhase('landing')}>
+                ← Back
+              </button>
+            </div>
+            {error && <p className="auth-error">{error}</p>}
+          </form>
+        )}
       </div>
 
       <footer className="welcome-foot reveal" style={{ '--d': '500ms' }}>
