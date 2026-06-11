@@ -1,5 +1,7 @@
 # Stammtisch — AI-scaffolded small-group activity platform
 
+**Live demo:** https://stammtisch-hij8.onrender.com
+
 Matches strangers into small groups (3–5) around a shared interest, time,
 and place, then helps the group actually meet up. Events are the central
 object; the AI scaffolds (clusters, shortlists real venues, runs the group
@@ -46,10 +48,11 @@ Behind an `AuthProvider` seam (`backend/src/providers/auth.ts`):
   publishable key only — never the service_role key). You get:
   - **Email magic links** — `POST /auth/magic-link`; the emailed link
     redirects back to the frontend with the session token.
-  - **Google login** — enable the Google provider in the Supabase dashboard
-    (Authentication → Providers), and the frontend's "Continue with Google"
-    button appears automatically.
   - Email+password endpoints also exist for scripts/tests.
+
+  (Google login is disabled for now — `/auth/config` always returns
+  `google_auth_url: null`. To bring it back, re-enable the authorize URL in
+  `backend/src/api/auth.ts` and the buttons in the frontend.)
 
 Also add the frontend URL to Supabase → Authentication → URL Configuration
 → Redirect URLs (e.g. `http://localhost:5173`).

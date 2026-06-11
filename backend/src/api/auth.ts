@@ -1,13 +1,13 @@
-/** Auth endpoints. Three login paths, all producing the same bearer token:
+/** Auth endpoints. Two login paths, both producing the same bearer token:
  *
  * - magic link (primary): POST /auth/magic-link → email lands the user back
  *   on the frontend with tokens in the URL fragment (stub mode: instant token)
- * - Google OAuth: browser redirect to the authorize URL from GET /auth/config;
- *   tokens also arrive via the frontend redirect
  * - email+password: POST /auth/signup | /auth/login (kept for tests/scripts)
  *
- * The backend never sees Google credentials and stores no passwords; it only
- * verifies bearer tokens via the AuthProvider and maps them to local Users.
+ * (Google OAuth is disabled for now — /auth/config no longer advertises it.)
+ *
+ * The backend stores no passwords; it only verifies bearer tokens via the
+ * AuthProvider and maps them to local Users.
  *
  * Errors use FastAPI's `{detail: ...}` shape — the frontend depends on it.
  */
@@ -95,14 +95,7 @@ export function authRouter(db: Db, provider: AuthProvider): Router {
   const router = Router()
 
   router.get('/config', (_req, res) => {
-    const mode = config.authMode()
-    let googleUrl: string | null = null
-    if (mode === 'supabase') {
-      googleUrl =
-        `${config.SUPABASE_URL}/auth/v1/authorize` +
-        `?provider=google&redirect_to=${encodeURIComponent(config.FRONTEND_ORIGIN)}`
-    }
-    res.json({ mode, magic_link: true, google_auth_url: googleUrl })
+    res.json({ mode: config.authMode(), magic_link: true, google_auth_url: null })
   })
 
   router.post('/magic-link', async (req, res) => {

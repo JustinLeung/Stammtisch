@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Welcome from './screens/Welcome.jsx'
+import Profile from './screens/Profile.jsx'
 import Interests from './screens/Interests.jsx'
 import Availability from './screens/Availability.jsx'
 import Questions from './screens/Questions.jsx'
@@ -50,8 +51,8 @@ export default function App() {
   const [toasts, setToasts] = useState([])
   const [auth, setAuth] = useState(() => loadAuth())
 
-  // resolve email for tokens that arrived via redirect (and restore the
-  // profile draft parked before the magic link was sent)
+  // resolve email for tokens that arrived via redirect (and resume the
+  // onboarding that was interrupted by the magic link)
   useEffect(() => {
     if (!auth?.token || auth.email) return
     fetchMe(auth.token)
@@ -60,14 +61,9 @@ export default function App() {
         localStorage.setItem(AUTH_KEY, JSON.stringify(next))
         setAuth(next)
         addToast(`Signed in as ${res.user.email}`, 'info')
-        const pending = sessionStorage.getItem('stammtisch_pending')
-        if (pending && screen === 'welcome') {
-          const { name, hood } = JSON.parse(pending)
+        if (sessionStorage.getItem('stammtisch_pending') && screen === 'welcome') {
           sessionStorage.removeItem('stammtisch_pending')
-          if (name) {
-            setUser((u) => ({ ...u, name, neighborhood: hood }))
-            setScreen('interests')
-          }
+          setScreen('profile')
         }
       })
       .catch(() => {
@@ -110,7 +106,8 @@ export default function App() {
   }
 
   // ---------- onboarding transitions ----------
-  const finishWelcome = (name, neighborhood) => {
+  const finishWelcome = () => setScreen('profile')
+  const finishProfile = (name, neighborhood) => {
     setUser((u) => ({ ...u, name, neighborhood }))
     setScreen('interests')
   }
@@ -180,6 +177,7 @@ export default function App() {
       {screen === 'welcome' && (
         <Welcome onNext={finishWelcome} onAuthed={handleAuthed} authedEmail={auth?.email} />
       )}
+      {screen === 'profile' && <Profile onNext={finishProfile} />}
       {screen === 'interests' && <Interests onNext={finishInterests} />}
       {screen === 'availability' && <Availability onNext={finishAvailability} />}
       {screen === 'questions' && <Questions onNext={finishQuestions} />}

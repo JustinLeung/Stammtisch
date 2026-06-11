@@ -75,15 +75,6 @@ function AccountBanner({ onAuthed }) {
         >
           {phase === 'sending' ? 'Sending…' : 'Create account →'}
         </button>
-        {cfg.google_auth_url && (
-          <button
-            type="button"
-            className="btn btn--sm"
-            onClick={() => { window.location.href = cfg.google_auth_url }}
-          >
-            Google
-          </button>
-        )}
       </form>
       {error && <p className="auth-error">{error}</p>}
     </aside>

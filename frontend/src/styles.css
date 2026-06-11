@@ -167,6 +167,28 @@ button { font: inherit; cursor: pointer; }
 .welcome-hero .display { margin-bottom: 1.4rem; }
 .welcome-hero .lede { margin-bottom: 2.4rem; }
 
+.welcome-how {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0 0 2.4rem;
+  padding: 0;
+  max-width: 560px;
+}
+.welcome-how li {
+  display: flex;
+  gap: 0.9rem;
+  align-items: baseline;
+}
+.welcome-how .mono { color: var(--orange); }
+.welcome-how p {
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.welcome-how strong { color: var(--ink); }
+
 .welcome-form {
   display: flex;
   flex-wrap: wrap;
@@ -422,6 +444,25 @@ button { font: inherit; cursor: pointer; }
   right: 1rem;
   color: var(--ink-soft);
   font-size: 0.65rem;
+}
+
+.q-add {
+  align-self: flex-start;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.7rem 1.2rem;
+  border: 2px dashed var(--ink-soft);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-soft);
+  transition: all 0.18s ease;
+}
+.q-add:hover {
+  border-style: solid;
+  border-color: var(--ink);
+  color: var(--ink);
+  background: #fffdf6;
 }
 
 /* ---------- tischkarte (home) ---------- */
