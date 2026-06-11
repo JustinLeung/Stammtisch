@@ -1064,3 +1064,9 @@ button.seat.is-filled:focus-visible {
   color: var(--green);
   white-space: nowrap;
 }
+
+/* signed-in but tables are still simulated — gentle caution tint */
+.demo-banner--simulated {
+  background: var(--yellow-soft);
+  box-shadow: 4px 4px 0 var(--yellow);
+}

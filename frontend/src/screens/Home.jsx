@@ -81,6 +81,23 @@ function AccountBanner({ onAuthed }) {
   )
 }
 
+/**
+ * Shown to signed-in users: their account is real, but the tables aren't yet.
+ * Keeps expectations honest until live matching replaces the simulation.
+ */
+function SimulatedBanner() {
+  return (
+    <aside className="demo-banner demo-banner--simulated reveal" style={{ '--d': '0ms' }}>
+      <p className="demo-banner__copy">
+        <span className="badge badge--forming">SIMULATED</span>
+        Your account is real — these tables aren't yet. Everything below is a
+        simulation while we wire up live matching, so joining a table doesn't
+        commit you to anything (yet).
+      </p>
+    </aside>
+  )
+}
+
 export default function Home({ user, events, onToggleJoin, onReset, auth, onAuthed, onAbout }) {
   const mine = events.filter((e) => e.mine)
   const open = events.filter((e) => !e.mine && isOpen(e))
@@ -122,7 +139,7 @@ export default function Home({ user, events, onToggleJoin, onReset, auth, onAuth
         </div>
       </header>
 
-      {!auth && <AccountBanner onAuthed={onAuthed} />}
+      {auth ? <SimulatedBanner /> : <AccountBanner onAuthed={onAuthed} />}
 
       {user.answers?.length > 0 && (
         <aside className="tischkarte reveal" style={{ '--d': '0ms' }}>
