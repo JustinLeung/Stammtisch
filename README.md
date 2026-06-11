@@ -7,6 +7,40 @@ and place, then helps the group actually meet up. Events are the central
 object; the AI scaffolds (clusters, shortlists real venues, runs the group
 decision, validates) while humans hold the taste decisions. München first.
 
+> **⚠️ Hackathon project — partially implemented.** This was built during a
+> hackathon and the full vision was not completed. What's real today: a
+> hosted Express/TypeScript backend (single Render service serving API +
+> frontend), real authentication (Supabase magic links, with a zero-config
+> stub mode; Google login is wired but currently disabled), a seeded
+> venue/user dataset with a queryable
+> places provider, and the full onboarding/landing UX with a no-account demo
+> path. What's **not** real yet: the matching. The tables you see in the app
+> are generated client-side by a mock engine (`frontend/src/engine.js`) —
+> simulated joiners and all — and are not backed by the API.
+
+## Not finished during the hackathon
+
+The remaining build order (tracked in detail in `docs/BUILD_PLAN.md`):
+
+1. **Event state machine** — guarded transitions for the event lifecycle
+   (`seeded → accepting → deciding → confirmed → open_public → roster_locked
+   → happening → completed`); the enums and tables exist, the logic doesn't.
+2. **Constraint merging** — combining a group's hard constraints (open-at,
+   travel radius, budget, dietary, accessibility, indoor/outdoor) into
+   places-provider filters.
+3. **Real matching** — hard filters → embedding similarity + structured
+   features → greedy clustering in (area, time-window) buckets. The seeded
+   users are deliberately clustered so this is testable.
+4. **Venue decision flow** — LLM-drafted shortlists (validated venues only),
+   group voting, deadline fallback, venue lock.
+5. **Two-phase visibility** — threshold gate that flips a confirmed table to
+   public, a real home-feed API, and a discovery ranker.
+6. **Public join with a fit gate**, roster lock, post-event ratings.
+7. **Frontend rewiring** — the onboarding, feed, and join screens currently
+   run on the mock engine; they need to target the real API.
+8. **Eval harness** (`evals/`) — venue validity, constraint satisfaction,
+   decision-completion metrics. Scaffolded, not implemented.
+
 ## Layout
 
 ```
