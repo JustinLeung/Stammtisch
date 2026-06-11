@@ -1,0 +1,142 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import Welcome from './screens/Welcome.jsx'
+import Interests from './screens/Interests.jsx'
+import Availability from './screens/Availability.jsx'
+import Questions from './screens/Questions.jsx'
+import Matching from './screens/Matching.jsx'
+import Home from './screens/Home.jsx'
+import { generateTables, seedOpenEvents, simulateJoin } from './engine.js'
+import { THRESHOLD } from './data.js'
+
+const STORAGE_KEY = 'stammtisch_v1'
+
+function loadSaved() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const data = JSON.parse(raw)
+    if (!data?.user || !data?.events) return null
+    return data
+  } catch {
+    return null
+  }
+}
+
+export default function App() {
+  const saved = useRef(loadSaved()).current
+
+  const [screen, setScreen] = useState(saved ? 'home' : 'welcome')
+  const [user, setUser] = useState(
+    saved?.user ?? { name: '', neighborhood: '', interests: [], availability: [] },
+  )
+  const [events, setEvents] = useState(saved?.events ?? [])
+  const [toasts, setToasts] = useState([])
+
+  // ---------- toasts ----------
+  const toastId = useRef(0)
+  const addToast = useCallback((text, tone = 'info') => {
+    const id = ++toastId.current
+    setToasts((t) => [...t, { id, text, tone }])
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 5200)
+  }, [])
+
+  // ---------- persistence ----------
+  useEffect(() => {
+    if (screen === 'home') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, events }))
+    }
+  }, [screen, user, events])
+
+  const resetDemo = () => {
+    localStorage.removeItem(STORAGE_KEY)
+    setUser({ name: '', neighborhood: '', interests: [], availability: [] })
+    setEvents([])
+    setToasts([])
+    setScreen('welcome')
+  }
+
+  // ---------- onboarding transitions ----------
+  const finishWelcome = (name, neighborhood) => {
+    setUser((u) => ({ ...u, name, neighborhood }))
+    setScreen('interests')
+  }
+  const finishInterests = (interests) => {
+    setUser((u) => ({ ...u, interests }))
+    setScreen('availability')
+  }
+  const finishAvailability = (availability) => {
+    setUser((u) => ({ ...u, availability }))
+    setScreen('questions')
+  }
+  const finishQuestions = (answers) => {
+    const fullUser = { ...user, answers }
+    setUser(fullUser)
+    setEvents([...generateTables(fullUser), ...seedOpenEvents()])
+    setScreen('matching')
+  }
+  const finishMatching = () => setScreen('home')
+
+  // ---------- joining / leaving ----------
+  const toggleJoin = (eventId) => {
+    setEvents((prev) =>
+      prev.map((e) => {
+        if (e.id !== eventId) return e
+        const joined = e.confirmed.includes('You')
+        if (joined) return { ...e, confirmed: e.confirmed.filter((p) => p !== 'You') }
+        if (e.confirmed.length >= e.capacity) return e
+        const confirmed = [...e.confirmed, 'You']
+        if (e.confirmed.length < THRESHOLD && confirmed.length >= THRESHOLD) {
+          setTimeout(
+            () => addToast(`“${e.title}” hit critical mass — it's now open to all of München! 🍻`, 'unlock'),
+            350,
+          )
+        }
+        return { ...e, confirmed }
+      }),
+    )
+  }
+
+  // ---------- live demo simulation: Münchner keep joining ----------
+  useEffect(() => {
+    if (screen !== 'home') return
+    const tick = setInterval(() => {
+      setEvents((prev) => {
+        if (Math.random() < 0.35) return prev
+        const { events: next, joined } = simulateJoin(prev)
+        if (joined) {
+          const before = prev.find((e) => e.id === joined.eventId)
+          const after = next.find((e) => e.id === joined.eventId)
+          const crossed = before.confirmed.length < THRESHOLD && after.confirmed.length >= THRESHOLD
+          const youAreIn = after.confirmed.includes('You')
+          if (crossed && youAreIn) {
+            setTimeout(() => addToast(`“${after.title}” hit critical mass — it's now open to all of München! 🍻`, 'unlock'), 0)
+          } else if (youAreIn || after.mine) {
+            setTimeout(() => addToast(`${joined.person} just took a seat at “${after.title}”`, 'info'), 0)
+          }
+        }
+        return next
+      })
+    }, 4200)
+    return () => clearInterval(tick)
+  }, [screen, addToast])
+
+  return (
+    <div className="app">
+      <div className="grain" aria-hidden="true" />
+      {screen === 'welcome' && <Welcome onNext={finishWelcome} />}
+      {screen === 'interests' && <Interests onNext={finishInterests} />}
+      {screen === 'availability' && <Availability onNext={finishAvailability} />}
+      {screen === 'questions' && <Questions onNext={finishQuestions} />}
+      {screen === 'matching' && <Matching user={user} onDone={finishMatching} />}
+      {screen === 'home' && (
+        <Home user={user} events={events} onToggleJoin={toggleJoin} onReset={resetDemo} />
+      )}
+
+      <div className="toasts" role="status">
+        {toasts.map((t) => (
+          <div key={t.id} className={`toast toast--${t.tone}`}>{t.text}</div>
+        ))}
+      </div>
+    </div>
+  )
+}
