@@ -8,7 +8,9 @@ services:
   - type: web
     name: stammtisch
     runtime: node
-    buildCommand: cd frontend && npm ci && npm run build && cd ../backend && npm ci && npm run build
+    # backend `npm run build` also builds the frontend (build:frontend), so a
+    # service configured with only the backend build still serves the app.
+    buildCommand: cd backend && npm ci && npm run build
     startCommand: cd backend && npm run seed && npm run start
     envVars:
       - key: NODE_VERSION
