@@ -1,22 +1,18 @@
-# Render blueprint: Express backend (web service) + Vite frontend (static).
-# Set the Supabase env vars in the Render dashboard (sync: false below keeps
-# secrets out of the repo). Note: SQLite on Render's free disk is ephemeral —
-# attach a Render Postgres and set DATABASE_URL for persistent data.
+# Render blueprint: one web service — Express serves both the API and the
+# built Vite frontend. Set the Supabase env vars in the Render dashboard
+# (sync: false below keeps secrets out of the repo). Note: SQLite on Render's
+# free disk is ephemeral — attach a Render Postgres and set DATABASE_URL for
+# persistent data. FRONTEND_ORIGIN defaults to RENDER_EXTERNAL_URL in code,
+# so no cross-service wiring is needed.
 services:
   - type: web
-    name: stammtisch-api
+    name: stammtisch
     runtime: node
-    rootDir: backend
-    buildCommand: npm ci && npm run build
-    startCommand: npm run seed && npm run start
+    buildCommand: cd frontend && npm ci && npm run build && cd ../backend && npm ci && npm run build
+    startCommand: cd backend && npm run seed && npm run start
     envVars:
       - key: NODE_VERSION
         value: "22"
-      - key: FRONTEND_ORIGIN
-        fromService:
-          type: web
-          name: stammtisch-web
-          envVarKey: RENDER_EXTERNAL_URL
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_PUBLISHABLE_KEY
@@ -25,20 +21,3 @@ services:
       #   fromDatabase:
       #     name: stammtisch-db
       #     property: connectionString
-
-  - type: web
-    name: stammtisch-web
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: stammtisch-api
-          envVarKey: RENDER_EXTERNAL_URL
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html

@@ -56,10 +56,11 @@ Also add the frontend URL to Supabase → Authentication → URL Configuration
 
 ## Deploy (Render)
 
-`render.yaml` defines two services: `stammtisch-api` (Express) and
-`stammtisch-web` (static Vite build), wired to each other's URLs. Create a
-Blueprint in Render pointing at this repo, then set `SUPABASE_URL` and
-`SUPABASE_PUBLISHABLE_KEY` in the API service's environment. For persistent
-data, attach a Render Postgres and set `DATABASE_URL` (SQLite on Render is
-ephemeral). Remember to add the Render frontend URL to Supabase's redirect
-allow-list.
+`render.yaml` defines a single web service: the Express app serves the API
+and the built Vite frontend from one origin (no root directory — the build
+command builds both packages from the repo root). Create a Blueprint in
+Render pointing at this repo, then set `SUPABASE_URL` and
+`SUPABASE_PUBLISHABLE_KEY` in the service's environment; `FRONTEND_ORIGIN`
+defaults to the service's own URL. For persistent data, attach a Render
+Postgres and set `DATABASE_URL` (SQLite on Render is ephemeral). Remember to
+add the Render URL to Supabase's redirect allow-list.
