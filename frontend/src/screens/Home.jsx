@@ -1,10 +1,111 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import EventCard from '../components/EventCard.jsx'
+import ProfileModal from '../components/ProfileModal.jsx'
 import { isOpen } from '../engine.js'
+import { PROFILES } from '../data.js'
+import { getAuthConfig, sendMagicLink } from '../api.js'
 
-export default function Home({ user, events, onToggleJoin, onReset }) {
+/**
+ * Shown to demo (guest) users: upgrade to a real account in place, without
+ * losing the tables they've already joined. Hidden once signed in, or when
+ * the backend is unreachable (nothing to offer then).
+ */
+function AccountBanner({ onAuthed }) {
+  const [cfg, setCfg] = useState(undefined)
+  const [email, setEmail] = useState('')
+  const [phase, setPhase] = useState('idle') // idle | sending | sent
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    getAuthConfig().then(setCfg).catch(() => setCfg(null))
+  }, [])
+
+  if (!cfg) return null // loading or backend down — demo carries on
+
+  const submit = async (e) => {
+    e.preventDefault()
+    if (!email.trim()) return
+    setError('')
+    setPhase('sending')
+    try {
+      const res = await sendMagicLink(email.trim())
+      if (res.token) {
+        // stub mode: signed in instantly
+        onAuthed(res.token, email.trim())
+      } else {
+        setPhase('sent')
+      }
+    } catch (err) {
+      setError(err.message)
+      setPhase('idle')
+    }
+  }
+
+  if (phase === 'sent') {
+    return (
+      <aside className="demo-banner reveal" style={{ '--d': '0ms' }}>
+        <p className="demo-banner__copy">
+          ✉️ Check your inbox — the magic link in <strong>{email}</strong> lands
+          you right back at this table, signed in.
+        </p>
+      </aside>
+    )
+  }
+
+  return (
+    <aside className="demo-banner reveal" style={{ '--d': '0ms' }}>
+      <p className="demo-banner__copy">
+        <span className="badge badge--forming">DEMO</span>
+        You're browsing as a guest — these tables are simulated. Create an
+        account to keep your seat.
+      </p>
+      <form className="demo-banner__form" onSubmit={submit}>
+        <input
+          className="field__input"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          aria-label="Email"
+        />
+        <button
+          className="btn btn--primary btn--sm"
+          type="submit"
+          disabled={!email.trim() || phase === 'sending'}
+        >
+          {phase === 'sending' ? 'Sending…' : 'Create account →'}
+        </button>
+        {cfg.google_auth_url && (
+          <button
+            type="button"
+            className="btn btn--sm"
+            onClick={() => { window.location.href = cfg.google_auth_url }}
+          >
+            Google
+          </button>
+        )}
+      </form>
+      {error && <p className="auth-error">{error}</p>}
+    </aside>
+  )
+}
+
+export default function Home({ user, events, onToggleJoin, onReset, auth, onAuthed }) {
   const mine = events.filter((e) => e.mine)
   const open = events.filter((e) => !e.mine && isOpen(e))
+  const [profileName, setProfileName] = useState(null)
+
+  const profile =
+    profileName === 'You'
+      ? {
+          name: user.name || 'You',
+          neighborhood: user.neighborhood,
+          answers: user.answers ?? [],
+          isYou: true,
+        }
+      : profileName
+        ? { name: profileName, ...PROFILES[profileName] }
+        : null
 
   return (
     <main className="shell shell--home">
@@ -14,15 +115,23 @@ export default function Home({ user, events, onToggleJoin, onReset }) {
           STAMMTISCH
         </span>
         <div className="home-head__right">
-          <span className="user-chip">
+          {auth?.email && <span className="auth-chip mono" title="Signed in">✓ {auth.email}</span>}
+          <button
+            type="button"
+            className="user-chip user-chip--clickable"
+            title="View your Tischkarte"
+            onClick={() => setProfileName('You')}
+          >
             <span className="user-chip__avatar">{user.name.charAt(0).toUpperCase()}</span>
             {user.name}{user.neighborhood ? ` · ${user.neighborhood}` : ''}
-          </span>
+          </button>
           <button type="button" className="btn btn--ghost" onClick={onReset}>
-            Reset demo
+            {auth ? 'Sign out & reset' : 'Reset demo'}
           </button>
         </div>
       </header>
+
+      {!auth && <AccountBanner onAuthed={onAuthed} />}
 
       {user.answers?.length > 0 && (
         <aside className="tischkarte reveal" style={{ '--d': '0ms' }}>
@@ -54,7 +163,7 @@ export default function Home({ user, events, onToggleJoin, onReset }) {
         </div>
         <div className="card-grid">
           {mine.map((e, i) => (
-            <EventCard key={e.id} event={e} onToggleJoin={onToggleJoin} delay={80 + i * 90} />
+            <EventCard key={e.id} event={e} onToggleJoin={onToggleJoin} onViewProfile={setProfileName} delay={80 + i * 90} />
           ))}
         </div>
       </section>
@@ -68,7 +177,7 @@ export default function Home({ user, events, onToggleJoin, onReset }) {
         </div>
         <div className="card-grid">
           {open.map((e, i) => (
-            <EventCard key={e.id} event={e} onToggleJoin={onToggleJoin} delay={160 + i * 90} />
+            <EventCard key={e.id} event={e} onToggleJoin={onToggleJoin} onViewProfile={setProfileName} delay={160 + i * 90} />
           ))}
         </div>
       </section>
@@ -76,6 +185,8 @@ export default function Home({ user, events, onToggleJoin, onReset }) {
       <footer className="home-foot mono">
         STAMMTISCH · prototype · München first 🥨
       </footer>
+
+      <ProfileModal person={profile} onClose={() => setProfileName(null)} />
     </main>
   )
 }

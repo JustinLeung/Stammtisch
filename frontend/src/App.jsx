@@ -59,6 +59,7 @@ export default function App() {
         const next = { token: auth.token, email: res.user.email }
         localStorage.setItem(AUTH_KEY, JSON.stringify(next))
         setAuth(next)
+        addToast(`Signed in as ${res.user.email}`, 'info')
         const pending = sessionStorage.getItem('stammtisch_pending')
         if (pending && screen === 'welcome') {
           const { name, hood } = JSON.parse(pending)
@@ -80,6 +81,7 @@ export default function App() {
     const next = { token, email }
     localStorage.setItem(AUTH_KEY, JSON.stringify(next))
     setAuth(next)
+    if (email) addToast(`Signed in as ${email}`, 'info')
   }
 
   // ---------- toasts ----------
@@ -183,7 +185,14 @@ export default function App() {
       {screen === 'questions' && <Questions onNext={finishQuestions} />}
       {screen === 'matching' && <Matching user={user} onDone={finishMatching} />}
       {screen === 'home' && (
-        <Home user={user} events={events} onToggleJoin={toggleJoin} onReset={resetDemo} />
+        <Home
+          user={user}
+          events={events}
+          onToggleJoin={toggleJoin}
+          onReset={resetDemo}
+          auth={auth?.email ? auth : null}
+          onAuthed={handleAuthed}
+        />
       )}
 
       <div className="toasts" role="status">

@@ -2,7 +2,7 @@ import React from 'react'
 import { INTERESTS, THRESHOLD } from '../data.js'
 import { isOpen, seatsToOpen, slotTime } from '../engine.js'
 
-export default function EventCard({ event, onToggleJoin, delay = 0 }) {
+export default function EventCard({ event, onToggleJoin, onViewProfile, delay = 0 }) {
   const interest = INTERESTS.find((i) => i.id === event.interestId)
   const color = interest?.color ?? 'blue'
   const open = isOpen(event)
@@ -37,12 +37,18 @@ export default function EventCard({ event, onToggleJoin, delay = 0 }) {
           const isYou = person === 'You'
           return (
             <React.Fragment key={i}>
-              <span
-                className={`seat ${person ? 'is-filled' : ''} ${isYou ? 'is-you' : ''}`}
-                title={person ?? 'Empty seat'}
-              >
-                {person ? person.charAt(0) : ''}
-              </span>
+              {person ? (
+                <button
+                  type="button"
+                  className={`seat is-filled ${isYou ? 'is-you' : ''}`}
+                  title={`View ${isYou ? 'your' : `${person}’s`} Tischkarte`}
+                  onClick={() => onViewProfile?.(person)}
+                >
+                  {person.charAt(0)}
+                </button>
+              ) : (
+                <span className="seat" title="Empty seat" />
+              )}
               {i === THRESHOLD - 1 && i < event.capacity - 1 && (
                 <span className="seats__gate mono" title="Opens to everyone past this seat">⟶</span>
               )}
