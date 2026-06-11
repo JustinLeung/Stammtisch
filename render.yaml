@@ -1,0 +1,44 @@
+# Render blueprint: FastAPI backend (web service) + Vite frontend (static).
+# Set the Supabase env vars in the Render dashboard (sync: false below keeps
+# secrets out of the repo). Note: SQLite on Render's free disk is ephemeral —
+# attach a Render Postgres and set DATABASE_URL for persistent data.
+services:
+  - type: web
+    name: stammtisch-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m app.seeds.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: FRONTEND_ORIGIN
+        fromService:
+          type: web
+          name: stammtisch-web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      # - key: DATABASE_URL          # uncomment once a Render Postgres exists
+      #   fromDatabase:
+      #     name: stammtisch-db
+      #     property: connectionString
+
+  - type: web
+    name: stammtisch-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: stammtisch-api
+          envVarKey: RENDER_EXTERNAL_URL
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

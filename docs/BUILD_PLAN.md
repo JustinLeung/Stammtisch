@@ -15,6 +15,8 @@ decisions that diverge from the spec's suggestions.
 | Datetimes | — | naive UTC in DB | Europe/Berlin rendering is a client concern in v1 |
 | Extra entity | — | `Rating` table | needed by §10 step 6 and the §8 fit-gate eval |
 | Extra UI | — | Tischkarte icebreakers kept (display-only) | existing prototype feature; harmless, remove on request |
+| Auth | stub fake-login | `AuthProvider` seam: stub default; **Supabase** (magic link, Google OAuth, email+password) when `.env` has credentials | user has Supabase; stub keeps zero-credential runs |
+| Deploy | — | Render blueprint (`render.yaml`): API web service + static frontend | user deploys on Render |
 
 ## Build order (spec §12) and status
 

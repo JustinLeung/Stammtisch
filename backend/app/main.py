@@ -1,19 +1,30 @@
-"""FastAPI app. v1 endpoints land incrementally; /health and /venues prove
-the stack end-to-end for step 1."""
+"""FastAPI app. v1 endpoints land incrementally; auth + /venues so far."""
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
+from . import config
+from .api.auth import router as auth_router
 from .db import Base, engine, get_session
 from .providers.places import SeededPlacesProvider
 
 app = FastAPI(title="Stammtisch API", version="0.1.0")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[config.FRONTEND_ORIGIN, "http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 Base.metadata.create_all(engine)
+
+app.include_router(auth_router)
 
 
 @app.get("/health")
 def health():
-    return {"ok": True}
+    return {"ok": True, "auth_mode": config.auth_mode()}
 
 
 @app.get("/venues")

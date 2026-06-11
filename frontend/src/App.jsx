@@ -7,8 +7,25 @@ import Matching from './screens/Matching.jsx'
 import Home from './screens/Home.jsx'
 import { generateTables, seedOpenEvents, simulateJoin } from './engine.js'
 import { THRESHOLD } from './data.js'
+import { captureRedirectToken, fetchMe } from './api.js'
 
 const STORAGE_KEY = 'stammtisch_v1'
+const AUTH_KEY = 'stammtisch_auth'
+
+function loadAuth() {
+  // tokens from a magic-link / Google redirect take priority over stored ones
+  const redirected = captureRedirectToken()
+  if (redirected) {
+    const auth = { token: redirected, email: null }
+    localStorage.setItem(AUTH_KEY, JSON.stringify(auth))
+    return auth
+  }
+  try {
+    return JSON.parse(localStorage.getItem(AUTH_KEY)) ?? null
+  } catch {
+    return null
+  }
+}
 
 function loadSaved() {
   try {
@@ -31,6 +48,39 @@ export default function App() {
   )
   const [events, setEvents] = useState(saved?.events ?? [])
   const [toasts, setToasts] = useState([])
+  const [auth, setAuth] = useState(() => loadAuth())
+
+  // resolve email for tokens that arrived via redirect (and restore the
+  // profile draft parked before the magic link was sent)
+  useEffect(() => {
+    if (!auth?.token || auth.email) return
+    fetchMe(auth.token)
+      .then((res) => {
+        const next = { token: auth.token, email: res.user.email }
+        localStorage.setItem(AUTH_KEY, JSON.stringify(next))
+        setAuth(next)
+        const pending = sessionStorage.getItem('stammtisch_pending')
+        if (pending && screen === 'welcome') {
+          const { name, hood } = JSON.parse(pending)
+          sessionStorage.removeItem('stammtisch_pending')
+          if (name) {
+            setUser((u) => ({ ...u, name, neighborhood: hood }))
+            setScreen('interests')
+          }
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem(AUTH_KEY)  // stale/expired token
+        setAuth(null)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth])
+
+  const handleAuthed = (token, email) => {
+    const next = { token, email }
+    localStorage.setItem(AUTH_KEY, JSON.stringify(next))
+    setAuth(next)
+  }
 
   // ---------- toasts ----------
   const toastId = useRef(0)
@@ -49,6 +99,8 @@ export default function App() {
 
   const resetDemo = () => {
     localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(AUTH_KEY)
+    setAuth(null)
     setUser({ name: '', neighborhood: '', interests: [], availability: [] })
     setEvents([])
     setToasts([])
@@ -123,7 +175,9 @@ export default function App() {
   return (
     <div className="app">
       <div className="grain" aria-hidden="true" />
-      {screen === 'welcome' && <Welcome onNext={finishWelcome} />}
+      {screen === 'welcome' && (
+        <Welcome onNext={finishWelcome} onAuthed={handleAuthed} authedEmail={auth?.email} />
+      )}
       {screen === 'interests' && <Interests onNext={finishInterests} />}
       {screen === 'availability' && <Availability onNext={finishAvailability} />}
       {screen === 'questions' && <Questions onNext={finishQuestions} />}

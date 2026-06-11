@@ -717,3 +717,29 @@ button { font: inherit; cursor: pointer; }
   .welcome-foot { gap: 1rem; flex-wrap: wrap; }
   .home-head__right { width: 100%; justify-content: space-between; }
 }
+
+/* ---------- auth (welcome) ---------- */
+
+.field--wide { flex-basis: 100%; max-width: 420px; }
+
+.auth-actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-basis: 100%;
+}
+
+.auth-note {
+  flex-basis: 100%;
+  font-size: 0.9rem;
+  color: var(--green);
+}
+.auth-note--offline { color: var(--ink-soft); font-style: italic; }
+
+.auth-error {
+  flex-basis: 100%;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--red);
+}

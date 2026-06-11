@@ -92,6 +92,9 @@ class User(TimestampMixin, Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     display_name: Mapped[str] = mapped_column(String(80))
+    # real-account identity (null for seeded/synthetic users)
+    email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    auth_id: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
     interests: Mapped[list] = mapped_column(JSON, default=list)  # freeform tags
     intent: Mapped[Intent] = mapped_column(SAEnum(Intent), default=Intent.ACTIVITY_FRIENDS)
     home_lat: Mapped[float] = mapped_column(Float)
