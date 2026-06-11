@@ -93,7 +93,7 @@ export default function Availability({ onNext }) {
           disabled={on.size === 0}
           onClick={() => onNext([...on])}
         >
-          Next: three questions →
+          Next: break the ice →
         </button>
       </footer>
     </main>

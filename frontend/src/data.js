@@ -43,7 +43,7 @@ export const SLOTS = [
 // Critical mass: a table opens when MORE THAN 3 people confirm.
 export const THRESHOLD = 4
 
-// Icebreaker pool — 3 are drawn at random during onboarding.
+// Icebreaker pool — drawn one at a time during onboarding, all optional.
 export const QUESTIONS = [
   'What’s your ideal Sunday in München?',
   'What can you talk about for 20 minutes straight?',

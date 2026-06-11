@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { NEIGHBORHOODS } from '../data.js'
 import { getAuthConfig, sendMagicLink } from '../api.js'
 
 function Sunburst() {
@@ -26,9 +25,13 @@ function Sunburst() {
   )
 }
 
+const HOW = [
+  ['01', 'Tell us about you', 'What you love, your Viertel, and when you’re free.'],
+  ['02', 'AI drafts your tables', 'Small events at real places, seated with people you’d actually get along with.'],
+  ['03', 'Critical mass opens it', 'Once more than three confirm, the table opens to the whole city.'],
+]
+
 export default function Welcome({ onNext, onAuthed, authedEmail }) {
-  const [name, setName] = useState('')
-  const [hood, setHood] = useState('')
   const [email, setEmail] = useState('')
   const [cfg, setCfg] = useState(undefined) // undefined = loading, null = backend unreachable
   const [phase, setPhase] = useState('form') // form | sending | sent
@@ -39,16 +42,16 @@ export default function Welcome({ onNext, onAuthed, authedEmail }) {
   }, [])
 
   const offline = cfg === null
-  const ready = name.trim() && (authedEmail || offline || email.trim())
+  const ready = authedEmail || offline || email.trim()
 
   const submit = async (e) => {
     e.preventDefault()
     if (!ready) return
     setError('')
 
-    // already signed in (back from magic link / Google), or backend down:
+    // already signed in (back from magic link), or backend down:
     if (authedEmail || offline) {
-      onNext(name.trim(), hood)
+      onNext()
       return
     }
 
@@ -58,10 +61,10 @@ export default function Welcome({ onNext, onAuthed, authedEmail }) {
       if (res.token) {
         // stub mode: the "emailed link" logs in instantly
         onAuthed(res.token, email.trim())
-        onNext(name.trim(), hood)
+        onNext()
       } else {
-        // real mode: park the profile draft for when they return
-        sessionStorage.setItem('stammtisch_pending', JSON.stringify({ name: name.trim(), hood }))
+        // real mode: flag that onboarding should resume when they return
+        sessionStorage.setItem('stammtisch_pending', '1')
         setPhase('sent')
       }
     } catch (err) {
@@ -115,33 +118,21 @@ export default function Welcome({ onNext, onAuthed, authedEmail }) {
           <em>seated.</em>
         </h1>
         <p className="lede reveal" style={{ '--d': '260ms' }}>
-          Tell us what you love and when you're free. Our AI drafts the event
-          and seats you at a table of people like you. When more than three
-          confirm, the table opens to the whole city.
+          A Stammtisch is the table at the local that's always yours. We're
+          bringing the old idea back: small tables of Münchner who'd actually
+          get along, drafted by AI, hosted at real places around town.
         </p>
 
-        <form className="welcome-form reveal" style={{ '--d': '360ms' }} onSubmit={submit}>
-          <label className="field">
-            <span className="field__label">First name</span>
-            <input
-              autoFocus
-              className="field__input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Servus, I'm…"
-              maxLength={24}
-            />
-          </label>
-          <label className="field">
-            <span className="field__label">Your Viertel <small>(optional)</small></span>
-            <select className="field__input" value={hood} onChange={(e) => setHood(e.target.value)}>
-              <option value="">Pick a neighborhood</option>
-              {NEIGHBORHOODS.map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-          </label>
+        <ol className="welcome-how reveal" style={{ '--d': '340ms' }}>
+          {HOW.map(([num, title, body]) => (
+            <li key={num}>
+              <span className="mono">{num}</span>
+              <p><strong>{title}.</strong> {body}</p>
+            </li>
+          ))}
+        </ol>
 
+        <form className="welcome-form reveal" style={{ '--d': '420ms' }} onSubmit={submit}>
           {authedEmail ? (
             <p className="auth-note">✓ Signed in as <strong>{authedEmail}</strong></p>
           ) : offline ? (
@@ -150,6 +141,7 @@ export default function Welcome({ onNext, onAuthed, authedEmail }) {
             <label className="field field--wide">
               <span className="field__label">Email</span>
               <input
+                autoFocus
                 className="field__input"
                 type="email"
                 value={email}
@@ -165,21 +157,12 @@ export default function Welcome({ onNext, onAuthed, authedEmail }) {
                 ? 'Take a seat →'
                 : phase === 'sending' ? 'Sending…' : 'Email me a magic link →'}
             </button>
-            {cfg?.google_auth_url && !authedEmail && (
-              <button
-                type="button"
-                className="btn"
-                onClick={() => { window.location.href = cfg.google_auth_url }}
-              >
-                Continue with Google
-              </button>
-            )}
           </div>
           {error && <p className="auth-error">{error}</p>}
         </form>
       </div>
 
-      <footer className="welcome-foot reveal" style={{ '--d': '460ms' }}>
+      <footer className="welcome-foot reveal" style={{ '--d': '500ms' }}>
         <span className="mono">01 — WHO</span>
         <span className="mono">02 — WHAT</span>
         <span className="mono">03 — WHEN</span>
