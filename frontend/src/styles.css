@@ -222,9 +222,15 @@ button { font: inherit; cursor: pointer; }
 
 .welcome-foot {
   display: flex;
-  gap: 2rem;
+  flex-direction: column;
+  gap: 0.9rem;
   padding-top: 3rem;
   color: var(--ink-soft);
+}
+.welcome-foot__row {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
 }
 
 /* ---------- buttons ---------- */
@@ -956,6 +962,7 @@ button.seat.is-filled:focus-visible {
   padding: 0;
   color: var(--blue);
   cursor: pointer;
+  text-decoration: none;
 }
 .welcome-foot__link:hover { color: var(--red); }
 
@@ -984,7 +991,7 @@ button.seat.is-filled:focus-visible {
   .shell { padding: 1.4rem 1rem 3rem; }
   .week { grid-template-columns: 64px repeat(7, 1fr); gap: 4px; }
   .week__slot { font-size: 0.62rem; }
-  .welcome-foot { gap: 1rem; flex-wrap: wrap; }
+  .welcome-foot__row { gap: 1rem; }
   .home-head__right { width: 100%; justify-content: space-between; }
 }
 

@@ -182,13 +182,25 @@ export default function Welcome({ onNext, onAuthed, authedEmail, onAbout }) {
       </div>
 
       <footer className="welcome-foot reveal" style={{ '--d': '500ms' }}>
-        <span className="mono">01 — WHO</span>
-        <span className="mono">02 — WHAT</span>
-        <span className="mono">03 — WHEN</span>
-        <span className="mono">04 — YOU</span>
-        <button type="button" className="mono welcome-foot__link" onClick={onAbout}>
-          ABOUT ↗
-        </button>
+        <div className="welcome-foot__row">
+          <span className="mono">01 — WHO</span>
+          <span className="mono">02 — WHAT</span>
+          <span className="mono">03 — WHEN</span>
+          <span className="mono">04 — YOU</span>
+        </div>
+        <div className="welcome-foot__row">
+          <button type="button" className="mono welcome-foot__link" onClick={onAbout}>
+            ABOUT ↗
+          </button>
+          <a
+            className="mono welcome-foot__link"
+            href="https://github.com/JustinLeung/Stammtisch"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GITHUB ↗
+          </a>
+        </div>
       </footer>
     </main>
   )
