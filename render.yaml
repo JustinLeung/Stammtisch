@@ -1,5 +1,7 @@
-# Render blueprint: one web service — Express serves both the API and the
-# built Vite frontend. Set the Supabase env vars in the Render dashboard
+# Reference for the Render web service settings (configure the service
+# manually in the dashboard with these values — see README → Deploy).
+# One service: Express serves both the API and the built Vite frontend.
+# Set the Supabase env vars in the Render dashboard
 # (sync: false below keeps secrets out of the repo). Note: SQLite on Render's
 # free disk is ephemeral — attach a Render Postgres and set DATABASE_URL for
 # persistent data. FRONTEND_ORIGIN defaults to RENDER_EXTERNAL_URL in code,
