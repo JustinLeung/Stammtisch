@@ -82,7 +82,7 @@ export default function About({ onBack }) {
       <aside className="about-fork reveal" style={{ '--d': '700ms' }}>
         <div className="about-fork__copy">
           <p className="mono about-fork__eyebrow">Open source · MIT-spirited</p>
-          <h2 className="display display--xs">Built in a weekend, left on the table.</h2>
+          <h2 className="display display--xs">Built in one evening, left on the table.</h2>
           <p>
             The whole thing — the matching demo, the Express API, this very
             page — is on GitHub. Fork it, gut it, bring the Stammtisch to
